@@ -1,0 +1,22 @@
+{% extends "viewer/base.html" %}
+
+{% block content %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Query</th>
+                <!--<th>Download CSV</th>-->
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for object in object_list %}
+            <tr>
+                <td><a href="query/{{ object.id }}">{{ object }}</a></td>
+                <!--<td><a href="{{ object.id }}/download"><i class="glyphicon glyphicon-download" style="font-size: 20px;"></i></a></td>-->
+                <td><a href="query/delete/{{ object.id }}"><i class="glyphicon glyphicon-trash" style="font-size: 18px;"></i></a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

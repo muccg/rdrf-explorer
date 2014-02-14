@@ -5,30 +5,36 @@
         <title>Django MongoDB Viewer</title>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-            
+
         <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.min.js"></script>
         <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
         
-        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.min.css">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.min.css">
     </head>
     
     <body>
         
-        <nav class="navbar navbar-default" role="navigation">
+        <nav class="navbar navbar-inverse" role="navigation">
             <div class="container">
-                <p class="navbar-brand" href="#">MongoDB Viewer <sup>{{version}}</sup></p>
+                <p class="navbar-brand" href="viewer">MongoDB Viewer <sup>{{version}}</sup></p>
+                <ul class="nav navbar-nav">
+                    <li><a href="/viewer/">List</a></li>
+                    <li><a href="/viewer/new">New</a></li>
+                </ul>
+
                 {% if status %}
-                    <p class="navbar-text pull-right"><b>Host:</b> {{host}} <b>Database:</b> {{database}}</p>
+                    <p class="navbar-text pull-right"><b><font color="green">Connected</font></p>
                 {% else %}
                     <p class="navbar-text pull-right"><b><font color="red">Not connected</font></b></p>
                 {% endif%}
             </div>
         </nav>
-
-        <div class="container">  
+        
+        <div class="container">
+            <div class="alert alert-danger" id="response_error" style="display: none;"></div>
             {% if success_msg %}
                 <div class="alert alert-success">{{success_msg}}</div>
             {% endif %}
@@ -42,11 +48,76 @@
         </div>
 
     <script>
-        var editor = CodeMirror.fromTextArea(document.getElementById('id_sql'), {
+        var editor = CodeMirror.fromTextArea(document.getElementById('criteria'), {
             mode: "application/json",
+            lineNumbers: true
+        });
+
+        var editor = CodeMirror.fromTextArea(document.getElementById('projection'), {
+            mode: "application/javascript",
             lineNumbers: true
         });
     </script>
         
+    <script>
+        $(document).ready(function(){
+            $('#collection').hide();
+            $('#results').hide();
+
+            $("#database").change(function(){
+                $('#results-head').empty();
+                $('#results-body').empty();
+                $('#results').fadeOut();
+                $.getJSON("/viewer/db/" + this.value, function(data) {
+                    $('#collection').fadeOut(function() {
+                        $('#collection').empty();
+                        $.each(data, function(index, value) {
+                            $('#collection').append($("<option></option>").attr("value", value).text(value));
+                        });
+                        $("#collection").val('{{form.collection.value}}');
+                        $('#collection').fadeIn("slow");
+                    });
+                });
+            });
+            
+            $('#submit-query').click(function() {
+                $('#results').fadeOut(function() {
+                    $.post('', $("#query-form").serialize())
+                        .error(function(xhr, textStatus, error) { 
+                            $("#response_error").text(textStatus);
+                            $("#response_error").fadeIn().delay(3000).fadeOut();
+                        })
+                        .done(function( data ) {
+                            var response = jQuery.parseJSON(data);
+                            if ($.isEmptyObject(response)) {
+                                $("#response_error").text("No results");
+                                $("#response_error").fadeIn().delay(3000).fadeOut();
+                                return;
+                            }
+                            
+                            $('#results-head').empty();
+                            $('#results-body').empty();
+                            
+                            $.each(response[0], function(key, value) {
+                                $('#results-head').append($("<th></th>").text(key));
+                            });
+                            
+                            $.each(response, function(key, value) {
+                                var row = $('<tr></tr>');
+                                $.each(value, function(key, value) {
+                                    row.append($('<td></td>').text(value));
+                                });
+                                $('#results-body').append(row);
+                            });
+                            $('#results').fadeIn();
+                    });
+                });
+            });
+            
+            $("#database").val('{{form.database.value}}');
+            $("#database").change();
+        });
+    </script>
+
     </body>
 </html>
