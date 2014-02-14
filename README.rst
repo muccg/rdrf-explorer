@@ -16,4 +16,5 @@ Add to INSTALLED_APPS:
 'viewer'
 
 *urls.py*
+
 url(r'^viewer/', include('viewer.urls'))
