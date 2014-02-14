@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+    
+<html>
+    <head>
+        <title>Django MongoDB Viewer</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            
+        <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.min.js"></script>
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+        
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.min.css">
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
+    </head>
+    
+    <body>
+        
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container">
+                <p class="navbar-brand" href="#">MongoDB Viewer <sup>{{version}}</sup></p>
+                {% if status %}
+                    <p class="navbar-text pull-right"><b>Host:</b> {{host}} <b>Database:</b> {{database}}</p>
+                {% else %}
+                    <p class="navbar-text pull-right"><b><font color="red">Not connected</font></b></p>
+                {% endif%}
+            </div>
+        </nav>
+
+        <div class="container">  
+            {% if success_msg %}
+                <div class="alert alert-success">{{success_msg}}</div>
+            {% endif %}
+    
+            {% if error_msg %}
+                <div class="alert alert-danger">{{error_msg}}</div>
+            {% endif %}
+            
+            {% block content %}
+            {% endblock %}
+        </div>
+
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById('id_sql'), {
+            mode: "application/json",
+            lineNumbers: true
+        });
+    </script>
+        
+    </body>
+</html>
