@@ -18,3 +18,6 @@ Add to INSTALLED_APPS:
 *urls.py*
 
 url(r'^viewer/', include('viewer.urls'))
+
+
+After installation run syncdb
