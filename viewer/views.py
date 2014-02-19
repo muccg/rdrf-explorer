@@ -5,6 +5,9 @@ from django.views.generic.edit import CreateView
 from django.views.generic import ListView
 from django.template import RequestContext
 
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
 from viewer import app_settings
 from forms import QueryForm
 from viewer.utils import connection_status, get_database_names, get_collections, run_query
@@ -13,14 +16,18 @@ from models import Query
 import json
 from bson.json_util import dumps
 
+class LoginRequiredMixin(object):
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
 
-class MainView(View):
+class MainView(LoginRequiredMixin, View):
     
     def get(self, request):
         return render_to_response('viewer/query_list.html', { 'object_list': Query.objects.all() }, _get_default_params(request, None))
 
 
-class NewQueryView(View):
+class NewQueryView(LoginRequiredMixin, View):
 
     def get(self, request):
         params = _get_default_params(request, QueryForm)
@@ -35,7 +42,7 @@ class NewQueryView(View):
         return HttpResponse()
 
 
-class DeleteQueryView(View):
+class DeleteQueryView(LoginRequiredMixin, View):
 
     def get(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
@@ -43,8 +50,8 @@ class DeleteQueryView(View):
         return redirect('viewer_main')
 
 
-class DbView(View):
-    
+class DbView(LoginRequiredMixin, View):
+
     def get(self, request, database_name):
         if database_name != "-1":
             colls = get_collections(database_name)
@@ -52,7 +59,7 @@ class DbView(View):
             return HttpResponse(json_response)
 
 
-class QueryView(View):
+class QueryView(LoginRequiredMixin, View):
     
     def get(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
