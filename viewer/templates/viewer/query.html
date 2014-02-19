@@ -1,6 +1,10 @@
 {% extends "viewer/base.html" %}
 
 {% block content %}
+    <p>
+        <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
+        <hr>
+    </p>
     
     <form name='query-form' id='query-form' method='post'>
         {% csrf_token %}

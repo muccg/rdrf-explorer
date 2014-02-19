@@ -114,6 +114,16 @@
                 });
             });
             
+            $('#hide-form-btn').click(function() {
+                $('#query-form').toggle("blind", function() {
+                    if($('#query-form').is( ":visible" )) {
+                        $('#hide-form-btn').html('Hide form');
+                    } else {
+                        $('#hide-form-btn').html('Show form');
+                    }
+                });
+            });
+            
             $("#database").val('{{form.database.value}}');
             $("#database").change();
         });
