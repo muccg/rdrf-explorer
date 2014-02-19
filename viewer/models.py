@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.urlresolvers import reverse
 
+
 class Query(models.Model):
     title = models.CharField(max_length=255)
     database = models.CharField(max_length=255)
