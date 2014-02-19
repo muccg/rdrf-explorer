@@ -24,6 +24,10 @@
         </div>
         
         <div class="form-group">
+            <textarea  placeholder="Description" class="form-control" cols="40" id="description" name="description" rows="5">{{form.description.value}}</textarea>
+        </div>
+    
+        <div class="form-group">
             <input type="hidden" value="{{form.created_by.value|default_if_none:request.user.username}}" class="form-control" id="created_by" name="created_by" placeholder="Created by">
         </div>
         
