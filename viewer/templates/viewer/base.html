@@ -13,6 +13,25 @@
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
         <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.min.css">
+            
+        <style>
+        html {
+            position: relative;
+            min-height: 100%;
+        }
+        body {
+            margin-bottom: 30px;
+        }
+        #footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            /* Set the fixed height of the footer here */
+            height: 35px;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+        </style>
     </head>
     
     <body>
@@ -47,6 +66,12 @@
             {% endblock %}
         </div>
 
+        <div id="footer">
+            <div class="container">
+                <h6 class="text-muted">Project developed at <a href="http://ccg.murdoch.edu.au" target="_blank">Centre for Comparative Genomics</a>, <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a> &copy <script>document.write(new Date().getFullYear())</script></h6>
+            </div>
+        </div>
+        
     <script>
         var editor = CodeMirror.fromTextArea(document.getElementById('criteria'), {
             mode: "application/json",
