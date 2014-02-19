@@ -1,1 +1,2 @@
 recursive-include viewer/templates *
+recursive-include viewer/static *
