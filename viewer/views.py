@@ -74,13 +74,17 @@ class QueryView(LoginRequiredMixin, View):
 
     def post(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
+        query_form = QueryForm(request.POST, instance=query_model)
+        form = QueryForm(request.POST)
 
         if request.is_ajax():
-            result = run_query(query_model)
+            if query_form.has_changed() and form.is_valid():
+                result = run_query(form)
+            else:
+                result = run_query(query_model)
             return HttpResponse(dumps(result))
         else:
-            query_form = QueryForm(request.POST, instance=query_model)
-            if query_form.is_valid():
+            if form.is_valid():
                 m = query_form.save(commit=False)
                 m.save()
                 return redirect(m)

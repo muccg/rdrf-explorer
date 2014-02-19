@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
+from models import Query
 from viewer import app_settings
 import ast
 
@@ -28,15 +29,23 @@ def get_collections(database):
     return db.collection_names()
 
 
-def run_query(query_model):
+def run_query(query):
     client = _get_mongo_client()
 
-    db = client[query_model.database]
-    coll = db[query_model.collection]
-    fields_dict = ast.literal_eval(
-        _remove_special_chars(query_model.projection))
-    criteria_dict = ast.literal_eval(
-        _remove_special_chars(query_model.criteria))
+    if isinstance(query, Query):
+        db = client[query.database]
+        coll = db[query.collection]
+        fields_dict = ast.literal_eval(
+            _remove_special_chars(query.projection))
+        criteria_dict = ast.literal_eval(
+            _remove_special_chars(query.criteria))
+    else:
+        db = client[query.cleaned_data['database']]
+        coll = db[query.cleaned_data['collection']]
+        fields_dict = ast.literal_eval(
+            _remove_special_chars(query.cleaned_data['projection']))
+        criteria_dict = ast.literal_eval(
+            _remove_special_chars(query.cleaned_data['criteria']))
 
     return coll.find(criteria_dict, fields_dict)
 
