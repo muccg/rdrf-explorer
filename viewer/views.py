@@ -12,6 +12,7 @@ from viewer.utils import connection_status, get_database_names
 from viewer.utils import get_collections, run_query
 from models import Query
 
+import csv
 import json
 from bson.json_util import dumps
 
@@ -90,6 +91,26 @@ class QueryView(LoginRequiredMixin, View):
                 return redirect(m)
 
 
+class DownloadQueryView(LoginRequiredMixin, View):
+
+    def get(self, request, query_id):
+        query_model = Query.objects.get(id=query_id)
+        result = run_query(query_model)
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % _get_filename(query_id, request)
+        writer = csv.writer(response)
+
+        header = _get_header(result)
+        writer.writerow(header)
+
+        for r in result:
+            row = _get_content(r, header)
+            writer.writerow(row)
+
+        return response
+
+
 def _get_default_params(request, form):
         status, error = connection_status()
 
@@ -106,3 +127,21 @@ def _get_default_params(request, form):
             'databases': databases,
             'form': form
         })
+
+
+def _get_header(result):
+    header = []
+    for key in result[0].keys():
+        header.append(key)
+    return header
+
+
+def _get_content(result, header):
+    row = []
+    for h in header:
+        row.append(result[h])
+    return row
+
+
+def _get_filename(query_id, request):
+    return "query_%s_%s.csv" % (query_id, request.user.username)
