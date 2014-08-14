@@ -118,7 +118,7 @@
                                 });
                                 $('#results-body').append(row);
                             });
-                            $('#hide-form-btn').click();
+                            //$('#hide-form-btn').click();
                             $('#results').fadeIn();
                     });
                 });
@@ -136,6 +136,40 @@
             
             $("#database").val('{{form.database.value}}');
             $("#database").change();
+            
+            $('#api-query').click(function() {
+                $.getJSON('/viewer/api/records/', function(data) {
+
+                    $('#api-results-head').empty();
+                    $('#api-results-body').empty();
+
+                    $.each(data[0], function(key, value) {
+                        $('#api-results-head').append($("<th></th>").html("<input type='checkbox'>" + key));
+                    });
+
+                    var keys = new Array();
+                    $.each(data, function(key, value) {
+                        var row = $('<tr></tr>');
+                        $.each(value, function(key, value) {
+                            if (key == 'id') {
+                                keys.push(value);
+                            }
+                            row.append($('<td></td>').text(value));
+                        });
+                        $('#api-results-body').append(row);
+                    });
+                    
+                    var criteria = {};
+                    var in_operator = {};
+                    
+                    in_operator['$in'] = keys;
+                    criteria['django_id'] = in_operator;
+
+                    $('#criteria').text(JSON.stringify(criteria, undefined, 2));
+                    //$('#hide-form-btn').trigger("click");
+
+                })
+            });
         });
     </script>
 

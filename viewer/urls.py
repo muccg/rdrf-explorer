@@ -2,6 +2,7 @@ from django.conf.urls import patterns, url
 from viewer.views import MainView, DbView
 from viewer.views import QueryView, NewQueryView
 from viewer.views import DeleteQueryView, DownloadQueryView
+from viewer.views import LoadRecordsFromApi
 
 urlpatterns = patterns(
     '',
@@ -14,6 +15,9 @@ urlpatterns = patterns(
         DownloadQueryView.as_view(), name='viewer_query_download'),
     url(r'^query/delete/(?P<query_id>\w+)/?$',
         DeleteQueryView.as_view(), name='viewer_query_delete'),
+
+    url(r'^api/records/?$',
+        LoadRecordsFromApi.as_view(), name='load_api_records'),
 
     url(r'new$', NewQueryView.as_view(), name='viewer_new'),
 

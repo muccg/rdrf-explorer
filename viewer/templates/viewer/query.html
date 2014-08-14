@@ -1,13 +1,34 @@
 {% extends "viewer/base.html" %}
 
 {% block content %}
-    <p>
-        <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
-        <hr>
-    </p>
-    
+
     <form name='query-form' id='query-form' method='post'>
         {% csrf_token %}
+        <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
+        <button type="button" name="" id="api-query" class="btn btn-success btn-sm">Load Patients</button>
+        <hr>
+        <div class="form-group" style="margin-top: 30px;">
+            <input type="text" class="form-control" id="title" name='title' placeholder="Title" value="{{form.title.value|default_if_none:""}}">
+        </div>
+        
+        <div class="form-group">
+            <textarea  placeholder="Description" class="form-control" cols="40" id="description" name="description" rows="5">{{form.description.value}}</textarea>
+        </div>
+        <hr>
+
+        <div name='api-results' id='api-results'>
+            <!--<div class="panel panel-default">
+                <div class="panel-body">-->
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr id='api-results-head'></tr>
+                        </thead>
+                        <tbody id='api-results-body'>
+                        </tbody>
+                    </table>
+                <!--</div>
+            </div>-->
+        </div>
         
         {% if status %}
             Database: 
@@ -22,14 +43,6 @@
                 {% endfor %}
             </select>
         {% endif %}
-
-        <div class="form-group" style="margin-top: 30px;">
-            <input type="text" class="form-control" id="title" name='title' placeholder="Title" value="{{form.title.value|default_if_none:""}}">
-        </div>
-        
-        <div class="form-group">
-            <textarea  placeholder="Description" class="form-control" cols="40" id="description" name="description" rows="5">{{form.description.value}}</textarea>
-        </div>
     
         <div class="form-group">
             <input type="hidden" value="{{form.created_by.value|default_if_none:request.user.username}}" class="form-control" id="created_by" name="created_by" placeholder="Created by">

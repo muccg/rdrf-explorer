@@ -14,6 +14,7 @@ from models import Query
 
 import csv
 import json
+import urllib2
 from bson.json_util import dumps
 
 
@@ -109,6 +110,16 @@ class DownloadQueryView(LoginRequiredMixin, View):
             writer.writerow(row)
 
         return response
+
+
+class LoadRecordsFromApi(LoginRequiredMixin, View):
+
+    def get(self, request):
+        req = urllib2.Request(app_settings.API_URL, None, {'format': 'json'})
+        opener = urllib2.build_opener()
+        f = opener.open(req)
+        results = json.load(f)
+        return HttpResponse(dumps(results['objects']))
 
 
 def _get_default_params(request, form):
