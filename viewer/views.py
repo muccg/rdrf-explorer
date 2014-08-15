@@ -136,7 +136,8 @@ def _get_default_params(request, form):
             'status': status,
             'error_msg': error,
             'databases': databases,
-            'form': form
+            'form': form,
+            'api_url': app_settings.API_URL
         })
 
 

@@ -1,11 +1,11 @@
 {% extends "viewer/base.html" %}
 
 {% block content %}
+    <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
+    <button type="button" name="" id="api-query" class="btn btn-success btn-sm">Load Patients</button> {{api_url}}
 
     <form name='query-form' id='query-form' method='post'>
         {% csrf_token %}
-        <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
-        <button type="button" name="" id="api-query" class="btn btn-success btn-sm">Load Patients</button>
         <hr>
         <div class="form-group" style="margin-top: 30px;">
             <input type="text" class="form-control" id="title" name='title' placeholder="Title" value="{{form.title.value|default_if_none:""}}">
@@ -17,55 +17,74 @@
         <hr>
 
         <div name='api-results' id='api-results'>
-            <!--<div class="panel panel-default">
-                <div class="panel-body">-->
-                    <table class="table table-bordered table-hover">
-                        <thead>
-                            <tr id='api-results-head'></tr>
-                        </thead>
-                        <tbody id='api-results-body'>
-                        </tbody>
-                    </table>
-                <!--</div>
-            </div>-->
-        </div>
-        
-        {% if status %}
-            Database: 
-            <select id='database' name='database'>
-                {% for db in databases %}
-                    <option id='{{db}}'>{{db}}</option>
-                {% endfor %}
-            </select>
-            <select id='collection' name='collection'>
-                {% for coll in collections %}
-                    <option id='{{coll}}'>{{coll}}</option>
-                {% endfor %}
-            </select>
-        {% endif %}
-    
-        <div class="form-group">
-            <input type="hidden" value="{{form.created_by.value|default_if_none:request.user.username}}" class="form-control" id="created_by" name="created_by" placeholder="Created by">
-        </div>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <span class="panel-title">Criteria</span>
-                    </div>
-                    <div class="panel-content">
-                        <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="8">{{form.criteria.value}}</textarea>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <span class="panel-title">Patient model</span>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr id='api-results-head'></tr>
+                                </thead>
+                                <tbody id='api-results-body'>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-5">
+                            <ul id="patient-schema">
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <span class="panel-title">Fields to display</span>
+
+        </div>
+        
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Forms</span>
+            </div>
+            <div class="panel-body">
+                {% if status %}
+                    Database: 
+                    <select id='database' name='database'>
+                        {% for db in databases %}
+                            <option id='{{db}}'>{{db}}</option>
+                        {% endfor %}
+                    </select>
+                    <select id='collection' name='collection'>
+                        {% for coll in collections %}
+                            <option id='{{coll}}'>{{coll}}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+            
+                <div class="form-group">
+                    <input type="hidden" value="{{form.created_by.value|default_if_none:request.user.username}}" class="form-control" id="created_by" name="created_by" placeholder="Created by">
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span class="panel-title">Criteria</span>
+                            </div>
+                            <div class="panel-content">
+                                <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="8">{{form.criteria.value}}</textarea>
+                            </div>
+                        </div>
                     </div>
-                    <div class="panel-content">
-                        <textarea class="form-control" cols="40" id="projection" name="projection" rows="8">{{form.projection.value}}</textarea>
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span class="panel-title">Fields to display</span>
+                            </div>
+                            <div class="panel-content">
+                                <textarea class="form-control" cols="40" id="projection" name="projection" rows="8">{{form.projection.value}}</textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
