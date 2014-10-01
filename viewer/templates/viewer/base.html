@@ -94,7 +94,13 @@
             $('#collection').change(function() {
                 $('#keys-table').empty();
                 if (this.value != '') {
-                    var projection = jQuery.parseJSON($('#projection').val());
+                    var proj_data = $('#projection').val();
+
+                    var projection = {}
+                    if (proj_data != 'None') {
+                        projection = jQuery.parseJSON(proj_data);
+                    }
+
                     $.getJSON("/viewer/collection/" + $("#database").val() + "/" + this.value, function(data) {
                         $.each(data, function(index, value) {
                             var checkbox = null;
