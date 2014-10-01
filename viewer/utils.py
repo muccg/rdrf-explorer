@@ -47,8 +47,28 @@ def run_query(query):
         criteria_dict = ast.literal_eval(
             _remove_special_chars(query.cleaned_data['criteria']))
 
-    return coll.find(criteria_dict, fields_dict)
+    results = coll.find(criteria_dict, fields_dict)
+    
+    strings = []
+    
+    for cur in results:
+        row = {}
+        for k in cur:
+            row[k] = str(cur[k])
+        strings.append(row)
 
+    return strings
+
+def get_keys_for_collection(database, collection):
+    client = _get_mongo_client()
+    db = client[database]
+    coll = db[collection]
+    one_row = coll.find_one({}, {'_id': 0})
+    keys = []
+    for key in one_row:
+        keys.append(key)
+    return keys
+    
 
 def _remove_special_chars(string):
     return ''.join(string.split())

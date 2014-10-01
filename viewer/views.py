@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 
 from viewer import app_settings
 from forms import QueryForm
-from viewer.utils import connection_status, get_database_names
+from viewer.utils import connection_status, get_database_names, get_keys_for_collection
 from viewer.utils import get_collections, run_query
 from models import Query
 
@@ -66,6 +66,15 @@ class DbView(LoginRequiredMixin, View):
             return HttpResponse(json_response)
 
 
+class CollectionView(LoginRequiredMixin, View):
+
+    def get(self, request, database_name, collection_name):
+        if collection_name != "-1":
+            keys = get_keys_for_collection(database_name, collection_name)
+            json_response = json.dumps(keys)
+            return HttpResponse(json_response)
+
+
 class QueryView(LoginRequiredMixin, View):
 
     def get(self, request, query_id):
@@ -112,16 +121,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
         return response
 
 
-class LoadRecordsFromApi(LoginRequiredMixin, View):
-
-    def get(self, request):
-        req = urllib2.Request(app_settings.API_URL, None, {'format': 'json'})
-        opener = urllib2.build_opener()
-        f = opener.open(req)
-        results = json.load(f)
-        return HttpResponse(dumps(results['objects']))
-
-
 def _get_default_params(request, form):
         status, error = connection_status()
 
@@ -136,8 +135,7 @@ def _get_default_params(request, form):
             'status': status,
             'error_msg': error,
             'databases': databases,
-            'form': form,
-            'api_url': app_settings.API_URL
+            'form': form
         })
 
 

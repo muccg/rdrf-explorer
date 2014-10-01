@@ -72,6 +72,7 @@
         $(document).ready(function(){
             $('#collection').hide();
             $('#results').hide();
+            $('#query-parameters').hide();
 
             $("#database").change(function(){
                 $('#results-head').empty();
@@ -85,8 +86,38 @@
                         });
                         $("#collection").val('{{form.collection.value}}');
                         $('#collection').fadeIn("slow");
+                        $('#collection').change();
                     });
                 });
+            });
+            
+            $('#collection').change(function() {
+                $('#keys-table').empty();
+                if (this.value != '') {
+                    var projection = jQuery.parseJSON($('#projection').val());
+                    $.getJSON("/viewer/collection/" + $("#database").val() + "/" + this.value, function(data) {
+                        $.each(data, function(index, value) {
+                            var checkbox = null;
+                            if(projection[value] != null && projection[value] === 1) {
+                                checkbox = "<input checked id='" + value + "' type='checkbox'> "+ value + "</input>";
+                            } else {
+                                checkbox = "<input id='" + value + "' type='checkbox'> "+ value + "</input>";
+                            }
+                            var row = $('<tr></tr>').append('<td></td>').html(checkbox);
+                            $('#keys-table').append(row);
+                        });
+                        $('#query-parameters').show();
+                    }).done(function() {
+                        $('input[type=checkbox]').on('click', function() {
+                            if (this.checked == true) {
+                                projection[this.id] = 1;
+                            } else {
+                                delete projection[this.id];
+                            }
+                            $('#projection').val(JSON.stringify(projection));
+                        });
+                    });
+                }
             });
             
             $('#submit-query').click(function() {
@@ -106,7 +137,7 @@
                             
                             $('#results-head').empty();
                             $('#results-body').empty();
-                            
+
                             $.each(response[0], function(key, value) {
                                 $('#results-head').append($("<th></th>").text(key));
                             });
@@ -118,6 +149,7 @@
                                 });
                                 $('#results-body').append(row);
                             });
+
                             //$('#hide-form-btn').click();
                             $('#results').fadeIn();
                     });
@@ -125,8 +157,8 @@
             });
             
             $('#hide-form-btn').click(function() {
-                $('#query-form').toggle("blind", function() {
-                    if($('#query-form').is( ":visible" )) {
+                $('#query-form-table').toggle("blind", function() {
+                    if($('#query-form-table').is( ":visible" )) {
                         $('#hide-form-btn').html('Hide form');
                     } else {
                         $('#hide-form-btn').html('Show form');
@@ -134,45 +166,19 @@
                 });
             });
             
+            $('#hide-description-btn').click(function() {
+                $('#query-description').toggle("blind", function() {
+                    if($('#query-description').is( ":visible" )) {
+                        $('#hide-description-btn').html('Hide description');
+                    } else {
+                        $('#hide-description-btn').html('Show description');
+                    }
+                });
+            });
+            
             $("#database").val('{{form.database.value}}');
             $("#database").change();
             
-            $('#api-query').click(function() {
-                $.getJSON('/viewer/api/records/', function(data) {
-
-                    $('#api-results-head').empty();
-                    $('#api-results-body').empty();
-                    
-                    $.each(data[0], function(item) {
-                        $('#patient-schema').append($("<li></li>").html("<input type='checkbox'> " + item));
-                    });
-
-                    $('#api-results-head')
-                       .append($("<th></th>").text('Given Names'))
-                       .append($("<th></th>").text('Family Name'));
-
-                    var keys = new Array();
-                    $.each(data, function(key, value) {
-                        keys.push(value.id);
-
-                        var row = $('<tr></tr>');
-                        row.append($('<td></td>').text(value.given_names));
-                        row.append($('<td></td>').text(value.family_name));
-                        
-                        $('#api-results-body').append(row);
-                    });
-                    
-                    var criteria = {};
-                    var in_operator = {};
-                    
-                    in_operator['$in'] = keys;
-                    criteria['django_id'] = in_operator;
-
-                    $('#criteria').text(JSON.stringify(criteria, undefined, 2));
-                    //$('#hide-form-btn').trigger("click");
-
-                })
-            });
         });
     </script>
 
