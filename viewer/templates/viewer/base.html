@@ -151,6 +151,9 @@
                             $.each(response, function(key, value) {
                                 var row = $('<tr></tr>');
                                 $.each(value, function(key, value) {
+                                    if (value instanceof Array) {
+                                        
+                                    }
                                     row.append($('<td></td>').text(value));
                                 });
                                 $('#results-body').append(row);

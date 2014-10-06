@@ -54,7 +54,13 @@ def run_query(query):
     for cur in results:
         row = {}
         for k in cur:
-            row[k] = str(cur[k])
+            if isinstance(cur[k], (list, tuple)):
+                tmp = []
+                for item in cur[k]:
+                    tmp.append(item)
+                row[k] = tmp
+            else:
+                row[k] = str(cur[k])
         strings.append(row)
 
     return strings
