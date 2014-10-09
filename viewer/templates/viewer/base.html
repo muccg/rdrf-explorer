@@ -105,16 +105,16 @@
                         $.each(data, function(index, value) {
                             var checkbox = null;
                             if(projection[value] != null && projection[value] === 1) {
-                                checkbox = "<input checked id='" + value + "' type='checkbox'> "+ value + "</input>";
+                                checkbox = "<input name='field_box_'"+ value +"' checked id='" + value + "' type='checkbox'> "+ value + "</input>";
                             } else {
-                                checkbox = "<input id='" + value + "' type='checkbox'> "+ value + "</input>";
+                                checkbox = "<input name='field_box_'"+ value +"' id='" + value + "' type='checkbox'> "+ value + "</input>";
                             }
                             var row = $('<tr></tr>').append('<td></td>').html(checkbox);
                             $('#keys-table').append(row);
                         });
                         $('#query-parameters').show();
                     }).done(function() {
-                        $('input[type=checkbox]').on('click', function() {
+                        $('input[name^=field_box_]').on('click', function() {
                             if (this.checked == true) {
                                 projection[this.id] = 1;
                             } else {

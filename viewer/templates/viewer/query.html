@@ -33,6 +33,12 @@
                         <option id='{{coll}}'>{{coll}}</option>
                     {% endfor %}
                 </select>
+                {% if edit %}
+                    <script>
+                        $('#database').attr('disabled', true);
+                        $('#collection').attr('disabled', true);
+                    </script>
+                {% endif %}
             {% endif %}
         
             <div class="form-group">
@@ -43,21 +49,21 @@
                 <div class="col-md-6">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span class="panel-title">Criteria</span>
+                            <span class="panel-title">Fields to display</span>
                         </div>
                         <div class="panel-body">
-                            <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="8">{{form.criteria.value}}</textarea>
+                            <input type="hidden" class="form-control" id="projection" name="projection" value="{{form.projection.value}}">
+                            <table id="keys-table" style="width: 100%"></table>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span class="panel-title">Fields to display</span>
+                            <span class="panel-title">Criteria</span>
                         </div>
                         <div class="panel-body">
-                            <input type="hidden" class="form-control" id="projection" name="projection" value="{{form.projection.value}}">
-                            <table id="keys-table"></table>
+                            <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="8">{{form.criteria.value}}</textarea>
                         </div>
                     </div>
                 </div>

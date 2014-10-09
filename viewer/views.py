@@ -81,6 +81,7 @@ class QueryView(LoginRequiredMixin, View):
         query_model = Query.objects.get(id=query_id)
         query_form = QueryForm(instance=query_model)
         params = _get_default_params(request, query_form)
+        params['edit'] = True
         return render_to_response('viewer/query.html', params)
 
     def post(self, request, query_id):
