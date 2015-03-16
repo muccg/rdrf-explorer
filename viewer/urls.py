@@ -2,6 +2,7 @@ from django.conf.urls import patterns, url
 from viewer.views import MainView, DbView, CollectionView
 from viewer.views import QueryView, NewQueryView
 from viewer.views import DeleteQueryView, DownloadQueryView
+from viewer.views import SqlQueryView
 
 urlpatterns = patterns(
     '',
@@ -17,6 +18,9 @@ urlpatterns = patterns(
         DownloadQueryView.as_view(), name='viewer_query_download'),
     url(r'^query/delete/(?P<query_id>\w+)/?$',
         DeleteQueryView.as_view(), name='viewer_query_delete'),
+    
+    url(r'^sql$',
+        SqlQueryView.as_view(), name='viewer_sql_query'),
 
     url(r'new$', NewQueryView.as_view(), name='viewer_new'),
 

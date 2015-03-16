@@ -2,6 +2,8 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.views.generic.base import View
 from django.template import RequestContext
+from django.db import connection
+from django.db import ProgrammingError
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -16,10 +18,12 @@ import csv
 import json
 import urllib2
 from bson.json_util import dumps
+from bson import json_util
+from datetime import datetime
 
 
 class LoginRequiredMixin(object):
-    @method_decorator(login_required)
+    #@method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super(LoginRequiredMixin, self).dispatch(
             request, *args, **kwargs)
@@ -120,6 +124,36 @@ class DownloadQueryView(LoginRequiredMixin, View):
             writer.writerow(row)
 
         return response
+
+
+class SqlQueryView(View):
+    
+    def get(self, request):
+        try:
+            cursor = connection.cursor()
+            query = request.GET['sql-query']
+            cursor.execute(query)
+            result_list = dictfetchall(cursor)
+            response = HttpResponse(dumps(result_list, default=json_serial))
+        except ProgrammingError as error:
+            response = HttpResponse(dumps({'error_msg': error.message}))
+
+        return response
+
+
+def dictfetchall(cursor):
+    "Returns all rows from a cursor as a dict"
+    desc = cursor.description
+    return [
+        dict(zip([col[0] for col in desc], row))
+        for row in cursor.fetchall()
+    ]
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+    #if isinstance(obj, datetime):
+    serial = obj.isoformat()
+    return serial
 
 
 def _get_default_params(request, form):

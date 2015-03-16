@@ -20,6 +20,36 @@
 
         <hr>
         
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-danger" id="query-error">
+                
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div>
+                    <textarea placeholder="Patient SQL query" class="form-control" rows="5" id="sql-query">SELECT * FROM patients_patient</textarea>
+                    <br/>
+                    <div class="pull-left" id="query-result-count" style="color: green;">
+                    </div>
+                    <div class="pull-right">
+                        <button type="button" class="btn btn-warning" id="sql-submit-query">Query</button>
+                    </div>
+                </div>    
+            </div>
+            <div class="col-md-12">
+                <table class="table">
+                    <thead>
+                        <tr id='query-result-head'></tr>
+                    </thead>
+                    <tbody id='query-result-body' class="table-hover ">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <hr>
+        
         <div id="query-form-table">
             {% if status %}
                 Database: 

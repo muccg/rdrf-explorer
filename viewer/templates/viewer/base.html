@@ -69,7 +69,8 @@
     </script>
         
     <script>
-        $(document).ready(function(){
+        $(document).ready(function() {
+            $("#query-error").hide();
             $('#collection').hide();
             $('#results').hide();
             $('#query-parameters').hide();
@@ -188,6 +189,36 @@
             $("#database").val('{{form.database.value}}');
             $("#database").change();
             
+            $('#sql-submit-query').click(function(){
+                $("#query-error").hide("blind");
+                $.get("{% url 'viewer_sql_query' %}", { 'sql-query': $('#sql-query').val() }, function() {
+                })
+                .done(function(data) {
+                    response = jQuery.parseJSON(data);
+                    if ("error_msg" in response) {
+                        $("#query-error").show('blind');
+                        $("#query-error").html(response['error_msg']);
+                    } else {
+                        $('#query-result-count').empty();
+                        $('#query-result-head').empty();
+                        $('#query-result-body').empty();
+
+                        $('#query-result-count').html("<strong>" + response.length + "</strong> records found");
+                        
+                        $.each(response[0], function(key, value) {
+                            $('#query-result-head').append($("<th></th>").text(key));
+                        });
+                        
+                        $.each(response, function(key, value) {
+                            var row = $('<tr></tr>');
+                            $.each(value, function(key, value) {
+                                row.append($('<td></td>').text(value));
+                            });
+                            $('#query-result-body').append(row);
+                        });
+                    }
+                });
+            });
         });
     </script>
 
