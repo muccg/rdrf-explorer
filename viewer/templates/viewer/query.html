@@ -26,44 +26,44 @@
             </div>
         </div>
         
-        <hr/>
-
-        <div class="form-group">
-            <label for="registry">Registry</label>
-            <!--<select id="id_registry" name="registry" class="form-control">-->
-                {{form.registry}}
-            <!--</select>-->
-        </div>
-
-        <hr>
-        
-        <div class="row">
-            <div class="col-md-12">
-                <div class="alert alert-danger" id="query-error">
-                
+        <div id="query-form-table">        
+            <hr/>
+    
+            <div class="row">
+                <div class="col-md-12">    
+                    <div class="form-group">
+                        <label for="registry">Registry</label>
+                        <!--<select id="id_registry" name="registry" class="form-control">-->
+                            {{form.registry}}
+                        <!--</select>-->
+                    </div>
                 </div>
             </div>
-            <div class="col-md-12">
-                <div>
-                    <textarea placeholder="Patient SQL query" class="form-control" rows="10" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
-                    <div class="pull-left" id="query-result-count" style="color: green;">
+    
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="alert alert-danger" id="query-error">
+                    
                     </div>
-                </div>    
+                </div>
+                <div class="col-md-12">
+                    <div>
+                        <textarea placeholder="Patient SQL query" class="form-control" rows="10" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
+                        <div class="pull-left" id="query-result-count" style="color: green;">
+                        </div>
+                    </div>    
+                </div>
+                <div class="col-md-12">
+                    <table class="table">
+                        <thead>
+                            <tr id='query-result-head'></tr>
+                        </thead>
+                        <tbody id='query-result-body' class="table-hover ">
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="col-md-12">
-                <table class="table">
-                    <thead>
-                        <tr id='query-result-head'></tr>
-                    </thead>
-                    <tbody id='query-result-body' class="table-hover ">
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <hr>
-        
-        <div id="query-form-table">
+            
             <div class="form-group">
                 <input type="hidden" value="{{form.created_by.value|default_if_none:request.user.username}}" class="form-control" id="created_by" name="created_by" placeholder="Created by">
             </div>
@@ -79,19 +79,15 @@
         </div>
         
     </form>
+    
+    <hr>
 
-    <div name='results' id='results' style='padding-top: 50px;'>
-        <div class="panel panel-default">
-            <div class="panel-body">
-                <table class="table">
-                    <thead>
-                        <tr id='results-head'></tr>
-                    </thead>
-                    <tbody id='results-body' class="table-hover ">
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    <table class="table">
+        <thead>
+            <tr id='results-head'></tr>
+        </thead>
+        <tbody id='results-body' class="table-hover ">
+        </tbody>
+    </table>
     
 {% endblock %}
