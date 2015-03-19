@@ -6,5 +6,16 @@ class QueryForm(ModelForm):
 
     class Meta:
         model = Query
-        fields = ['id', 'title', 'database', 'collection',
-                  'criteria', 'projection', 'description', 'created_by']
+        fields = [
+            'id',
+            'title',
+            'description',
+            
+            'registry',
+            'collection',
+            'criteria',
+            'projection',
+            'sql_query',
+            
+            'created_by'
+        ]

@@ -1,13 +1,21 @@
 {% extends "viewer/base.html" %}
 
 {% block content %}    
-    <button id="hide-description-btn" type="button" class="btn btn-primary btn-sm">Hide description</button>
-    <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
-
-    <form name='query-form' id='query-form' method='post'>
+{{form.errors}}
+    <form name='query-form' id='query-form' class="form" method='post'>
+        {% csrf_token %}
+        <input type="hidden" name="collection" id="collection" value="cdes">
     
+        <button id="hide-description-btn" type="button" class="btn btn-primary btn-sm">Hide description</button>
+        <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
+
+        <div class="pull-right">
+            <button type="button" class="btn btn-warning btn-sm" id="sql-submit-query">Validate SQL</button>
+            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            <button type="button" name="" id="submit-query" class="btn btn-success btn-sm">Run</button>
+        </div>
+
         <div id="query-description">
-            {% csrf_token %}
             <hr>
             <div class="form-group" style="margin-top: 30px;">
                 <input type="text" class="form-control" id="title" name='title' placeholder="Title" value="{{form.title.value|default_if_none:""}}">
@@ -16,6 +24,15 @@
             <div class="form-group">
                 <textarea  placeholder="Description" class="form-control" cols="40" id="description" name="description" rows="5">{{form.description.value}}</textarea>
             </div>
+        </div>
+        
+        <hr/>
+
+        <div class="form-group">
+            <label for="registry">Registry</label>
+            <!--<select id="id_registry" name="registry" class="form-control">-->
+                {{form.registry}}
+            <!--</select>-->
         </div>
 
         <hr>
@@ -28,12 +45,8 @@
             </div>
             <div class="col-md-12">
                 <div>
-                    <textarea placeholder="Patient SQL query" class="form-control" rows="5" id="sql-query">SELECT * FROM patients_patient</textarea>
-                    <br/>
+                    <textarea placeholder="Patient SQL query" class="form-control" rows="10" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
                     <div class="pull-left" id="query-result-count" style="color: green;">
-                    </div>
-                    <div class="pull-right">
-                        <button type="button" class="btn btn-warning" id="sql-submit-query">Query</button>
                     </div>
                 </div>    
             </div>
@@ -51,60 +64,20 @@
         <hr>
         
         <div id="query-form-table">
-            {% if status %}
-                Database: 
-                <select id='database' name='database'>
-                    {% for db in databases %}
-                        <option id='{{db}}'>{{db}}</option>
-                    {% endfor %}
-                </select>
-                <select id='collection' name='collection'>
-                    {% for coll in collections %}
-                        <option id='{{coll}}'>{{coll}}</option>
-                    {% endfor %}
-                </select>
-                {% if edit %}
-                    <script>
-                        $('#database').attr('disabled', true);
-                        $('#collection').attr('disabled', true);
-                    </script>
-                {% endif %}
-            {% endif %}
-        
             <div class="form-group">
                 <input type="hidden" value="{{form.created_by.value|default_if_none:request.user.username}}" class="form-control" id="created_by" name="created_by" placeholder="Created by">
             </div>
     
             <div class="row" id="query-parameters">
                 <div class="col-md-6">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <span class="panel-title">Fields to display</span>
-                        </div>
-                        <div class="panel-body">
-                            <input type="hidden" class="form-control" id="projection" name="projection" value="{{form.projection.value}}">
-                            <table id="keys-table" style="width: 100%"></table>
-                        </div>
-                    </div>
+                    <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="8">{{form.criteria.value}}</textarea>
                 </div>
                 <div class="col-md-6">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <span class="panel-title">Criteria</span>
-                        </div>
-                        <div class="panel-body">
-                            <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="8">{{form.criteria.value}}</textarea>
-                        </div>
-                    </div>
+                    <textarea class="form-control" cols="40" id="projection" name="projection" rows="8">{{form.projection.value}}</textarea>
                 </div>
             </div>
         </div>
         
-        <div class="pull-right">
-            <button type="submit" class="btn btn-primary">Save</button>
-            <button type="button" name="" id="submit-query" class="btn btn-success">Run</button>
-        </div>
-    
     </form>
 
     <div name='results' id='results' style='padding-top: 50px;'>
