@@ -5,6 +5,7 @@
     <form name='query-form' id='query-form' class="form" method='post'>
         {% csrf_token %}
         <input type="hidden" name="collection" id="collection" value="cdes">
+        <input type="hidden" value="{{request.user}}" id="created_by" name="created_by">
     
         <button id="hide-description-btn" type="button" class="btn btn-primary btn-sm">Hide description</button>
         <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">Hide form</button>
@@ -22,7 +23,7 @@
             </div>
             
             <div class="form-group">
-                <textarea  placeholder="Description" class="form-control" cols="40" id="description" name="description" rows="5">{{form.description.value}}</textarea>
+                <textarea  placeholder="Description" class="form-control" cols="40" id="description" name="description" rows="3">{{form.description.value}}</textarea>
             </div>
         </div>
         
@@ -41,6 +42,17 @@
             </div>
     
             <div class="row">
+                <div class="col-md-12">    
+                    <div class="form-group">
+                        <label for="mongo_search_type">Mongo Search Type</label>
+                        <!--<select id="id_registry" name="registry" class="form-control">-->
+                            {{form.mongo_search_type}}
+                        <!--</select>-->
+                    </div>
+                </div>
+            </div>
+    
+            <div class="row">
                 <div class="col-md-12">
                     <div class="alert alert-danger" id="query-error">
                     
@@ -48,7 +60,7 @@
                 </div>
                 <div class="col-md-12">
                     <div>
-                        <textarea placeholder="Patient SQL query" class="form-control" rows="10" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
+                        <textarea placeholder="Patient SQL query" class="form-control" rows="6" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
                         <div class="pull-left" id="query-result-count" style="color: green;">
                         </div>
                     </div>    
@@ -63,19 +75,22 @@
                     </table>
                 </div>
             </div>
-            
-            <div class="form-group">
-                <input type="hidden" value="{{form.created_by.value|default_if_none:request.user.username}}" class="form-control" id="created_by" name="created_by" placeholder="Created by">
-            </div>
     
-            <div class="row" id="query-parameters">
+            <div class="row" id="mongo-parameters-find">
                 <div class="col-md-6">
-                    <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="8">{{form.criteria.value}}</textarea>
+                    <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="6">{{form.criteria.value}}</textarea>
                 </div>
                 <div class="col-md-6">
-                    <textarea class="form-control" cols="40" id="projection" name="projection" rows="8">{{form.projection.value}}</textarea>
+                    <textarea class="form-control" cols="40" id="projection" name="projection" rows="6">{{form.projection.value}}</textarea>
                 </div>
             </div>
+            
+            <div class="row" id="mongo-parameters-aggregation">
+                <div class="col-md-12">
+                    <textarea class="form-control" cols="40" id="aggregation" name="aggregation" rows="6">{{form.aggregation.value}}</textarea>
+                </div>
+            </div>
+
         </div>
         
     </form>

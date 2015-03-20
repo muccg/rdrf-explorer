@@ -1,72 +1,79 @@
+import re
+import json
+
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
+from django.db import ProgrammingError
 from django.db import connection
 
 from models import Query
 from viewer import app_settings
-import ast
-import re
-
 from rdrf.utils import mongo_db_name_reg_id
 
 
-class SqlUtils():
-    
-    QUERY_PARAMETERS = [
-        "%registry_id%",
-    ]
-    
-    def run_sql(self, query, params):
-        for query_p in self.QUERY_PARAMETERS:
-            name = re.findall("%(.*?)%", query_p)[0]
-            query = query.replace(query_p, params[name])
-        cursor = connection.cursor()
-        self.cursor = cursor.execute(query)
-        return self.result_list(cursor)
+class DatabaseUtils(object):
 
-    def run_mongo(self, query):
-        sql_results = self.result
-        return self.run_query(query)
-   
-    def result_list(self, cursor):
-        self.result = self.dictfetchall(cursor)
+    QUERY_PARAMETERS = [
+        "%registry%",
+    ]
+
+    def __init__(self, form_object=None):
+        if form_object:
+            self.form_object = form_object
+            self.query = form_object['sql_query'].value()
+            self._sql_parameters()
+    
+    def connection_status(self):
+        try:
+            client = self._get_mongo_client()
+            client.close()
+            return True, None
+        except ConnectionFailure, e:
+            return False, e
+    
+    def run_sql(self):
+        try:
+            cursor = connection.cursor()
+            self.cursor = cursor.execute(self.query)
+            self.result = self._dictfetchall(cursor)
+        except ProgrammingError as error:
+            self.result = {'error_msg': error.message}
+
         return self
 
-    def dictfetchall(self, cursor):
-        "Returns all rows from a cursor as a dict"
-        desc = cursor.description
-        return [
-            dict(zip([col[0] for col in desc], row))
-            for row in cursor.fetchall()
-        ]
-        
-    def validate_sql(self, query, params):
-        self.run_sql(query, params)
-        return self.dictfetchall(cursor)
-
-    def run_query(self, query):
+    def run_mongo(self):
         client = self._get_mongo_client()
         
-        fields_dict = None
-        criteria_dict = {}
+        projection = {}
+        criteria = {}
         
-        coll = "cdes"
-        db = client[mongo_db_name_reg_id(query['registry'].value())]
-        coll = db[query['collection'].value()]
-        criteria_dict = ast.literal_eval(self._remove_special_chars(query['criteria'].value()))
-        fields_dict = ast.literal_eval(self._remove_special_chars(query['projection'].value()))
+        database = client[mongo_db_name_reg_id(self.form_object['registry'].value())]
+        collection = database[self.form_object['collection'].value()]
         
+        mongo_search_type = self.form_object['mongo_search_type'].value()
+        
+        criteria = self._string_to_json(self.form_object['criteria'].value())
+        projection = self._string_to_json(self.form_object['projection'].value())
+        aggregation = self._string_to_json(self.form_object['aggregation'].value())
+
         django_ids = []
         for r in self.result:
             django_ids.append(r["id"])
 
-        criteria_dict["django_id"] = {"$in": django_ids}
-
-        results = coll.find(criteria_dict, fields_dict)
-    
-        strings = []
         
+        records = []
+        if mongo_search_type == 'F':
+            criteria["django_id"] = {"$in":django_ids}
+            results = collection.find(criteria, projection)
+        elif mongo_search_type == 'A':
+            if "$match" in aggregation:
+                aggregation["$match"].update({"django_id":{"$in":django_ids }})
+            else:
+                aggregation["$match"] = {"django_id":{"$in":django_ids }}
+            results = collection.aggregate([aggregation])
+            results = results['result']
+    
         for cur in results:
             row = {}
             for k in cur:
@@ -77,23 +84,35 @@ class SqlUtils():
                     row[k] = tmp
                 else:
                     row[k] = str(cur[k])
-            strings.append(row)
+            records.append(row)
+        
+        self.result = records
+        return self
+
     
-        return strings
+    def _string_to_json(self, string):
+        result = None
+        try:
+            result = json.loads(string)
+        except ValueError:
+            result = None
+        return result
     
-    def _remove_special_chars(self, string):
-        return ''.join(string.split())
-    
+    def _sql_parameters(self):
+        for param in self.QUERY_PARAMETERS:
+            param_name = re.findall("%(.*?)%", param)[0]
+            param_value = self.form_object[param_name].value()
+            self.query = self.query.replace(param, param_value)
+        
+    def _dictfetchall(self, cursor):
+        "Returns all rows from a cursor as a dict"
+        desc = cursor.description
+        return [
+            dict(zip([col[0] for col in desc], row))
+            for row in cursor.fetchall()
+        ]
     
     def _get_mongo_client(self):
         return MongoClient(app_settings.VIEWER_MONGO_HOST,
                            app_settings.VIEWER_MONGO_PORT)
-        
 
-def connection_status():
-    try:
-        client = MongoClient(app_settings.VIEWER_MONGO_HOST, app_settings.VIEWER_MONGO_PORT)
-        client.close()
-        return True, None
-    except ConnectionFailure, e:
-        return False, e

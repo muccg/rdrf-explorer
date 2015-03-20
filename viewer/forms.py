@@ -15,6 +15,8 @@ class QueryForm(ModelForm):
             'collection',
             'criteria',
             'projection',
+            'aggregation',
+            'mongo_search_type',
             'sql_query',
             
             'created_by'

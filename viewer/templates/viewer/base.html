@@ -25,8 +25,8 @@
             <div class="container">
                 <p class="navbar-brand" href="viewer">RDRF Reporting Tool <sup>{{version}}</sup></p>
                 <ul class="nav navbar-nav">
-                    <li><a href="/viewer/">List</a></li>
-                    <li><a href="/viewer/new">New</a></li>
+                    <li><a href="{% url 'viewer_main' %}">List</a></li>
+                    <li><a href="{% url 'viewer_new' %}">New</a></li>
                 </ul>
 
                 {% if status %}
@@ -59,10 +59,21 @@
         
         <script>
             $(document).ready(function() {
+                if('{{form.mongo_search_type.value}}' == 'F') {
+                    $("#mongo-parameters-aggregation").hide();
+                } else {
+                    $("#mongo-parameters-find").hide();
+                }
+                
                 $("#query-error").hide();
     
                 $("#registry-option").change(function(){
                     $("#database").val(this.value);
+                });
+                
+                $("#id_mongo_search_type").change(function() {
+                    $("#mongo-parameters-aggregation").toggle();
+                    $("#mongo-parameters-find").toggle();
                 });
 
                 $('#submit-query').click(function() {
@@ -127,8 +138,8 @@
                         url: "{% url 'viewer_sql_query' %}",
                         type: "POST",
                         data: {
-                            'sql-query': $('#sql_query').val(),
-                            'registry-id': $('#id_registry').val()
+                            'sql_query': $('#sql_query').val(),
+                            'registry': $('#id_registry').val()
                         },
                         headers: {
                             'X-CSRFToken': $.cookie('{{ csrf_token_name }}')

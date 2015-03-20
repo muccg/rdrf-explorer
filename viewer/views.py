@@ -2,16 +2,14 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.views.generic.base import View
 from django.template import RequestContext
-from django.db import ProgrammingError
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 from viewer import app_settings
 from forms import QueryForm
-from viewer.utils import connection_status
 from models import Query
-from utils import SqlUtils
+from utils import DatabaseUtils
 
 import csv
 import json
@@ -73,19 +71,14 @@ class QueryView(LoginRequiredMixin, View):
         return render_to_response('viewer/query.html', params)
 
     def post(self, request, query_id):
-        sql_utils = SqlUtils()
-        
         query_model = Query.objects.get(id=query_id)
         query_form = QueryForm(request.POST, instance=query_model)
         form = QueryForm(request.POST)
-        
-        query = request.POST['sql_query']
-        params = {}
-        params["registry_id"] = request.POST['registry']
+
+        database_utils = DatabaseUtils(form)
 
         if request.is_ajax():
-            result = sql_utils.run_sql(query, params).run_mongo(form)
-
+            result = database_utils.run_sql().run_mongo().result
             return HttpResponse(dumps(result))
         else:
             if form.is_valid():
@@ -98,7 +91,9 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
     def get(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
-        result = run_query(query_model)
+        database_utils = DatabaseUtils()
+        
+        result = database_utils.run_query(query_model)
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="%s"' % _get_filename(query_id, request)
@@ -117,19 +112,10 @@ class DownloadQueryView(LoginRequiredMixin, View):
 class SqlQueryView(View):
 
     def post(self, request):
-        try:
-            sql_utils = SqlUtils()
-            query = request.POST['sql-query']
-            
-            params = {}
-            params["registry_id"] = request.POST['registry-id']
-            
-            result_list = sql_utils.run_sql(query, params).result
-            
-            response = HttpResponse(dumps(result_list, default=json_serial))
-        except ProgrammingError as error:
-            response = HttpResponse(dumps({'error_msg': error.message}))
-
+        form = QueryForm(request.POST)
+        database_utils = DatabaseUtils(form)
+        results = database_utils.run_sql().result
+        response = HttpResponse(dumps(results, default=json_serial))
         return response
 
 
@@ -140,12 +126,12 @@ def json_serial(obj):
 
 
 def _get_default_params(request, form):
-        status, error = connection_status()
+        database_utils = DatabaseUtils()
+        status, error = database_utils.connection_status()
 
         return RequestContext(request, {
             'version': app_settings.APP_VERSION,
             'host': app_settings.VIEWER_MONGO_HOST,
-            'database': app_settings.VIEWER_MONGO_DATABASE,
             'status': status,
             'error_msg': error,
             'form': form,
