@@ -21,11 +21,3 @@ url(r'^viewer/', include('viewer.urls'))
 
 
 **After installation run syncdb**
-
-**settings.py config**
-
-VIEWER_MONGO_HOST -> default to 'localhost'
-
-VIEWER_MONGO_PORT -> default to 27017
-
-VIEWER_MONGO_DATABASE = -> default to 'test'
