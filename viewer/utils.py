@@ -132,9 +132,10 @@ class DatabaseUtils(object):
             param_name = re.findall("%(.*?)%", param)[0]
             if isinstance(form_object, QueryForm):
                 param_value = form_object[param_name].value()
+                self.query = self.query.replace(param, param_value)
             elif isinstance(form_object, Query):
                 param_value = getattr(form_object, param_name)
-            self.query = self.query.replace(param, str(param_value.id))
+                self.query = self.query.replace(param, str(param_value.id))
         
     def _dictfetchall(self, cursor):
         "Returns all rows from a cursor as a dict"
