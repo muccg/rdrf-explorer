@@ -80,7 +80,9 @@ class QueryView(LoginRequiredMixin, View):
 
         if request.is_ajax():
             result = database_utils.run_full_query().result
-            return HttpResponse(dumps(result, default=json_serial))
+            result = _human_friendly(result)
+            result_json = dumps(result, default=json_serial)
+            return HttpResponse(result_json)
         else:
             if form.is_valid():
                 m = query_form.save(commit=False)
@@ -153,3 +155,36 @@ def _get_content(result, header):
     for h in header:
         row.append(result[h])
     return row
+
+def _human_friendly(result):
+    for r in result:
+        for key in r.keys():
+            cde_value = _lookup_cde_value(r[key])
+            if cde_value:
+                r[key] = cde_value
+            cde_name = _lookup_cde_name(key)
+            if cde_name:
+                r[cde_name] = r[key]
+                del r[key]
+    return result
+
+def _lookup_cde_value(cde_value_code):
+    from rdrf.models import CDEPermittedValue
+    try:
+        cde_permitedd_value_object = CDEPermittedValue.objects.get(code=cde_value_code)
+        return cde_permitedd_value_object.value
+    except CDEPermittedValue.DoesNotExist:
+        return None
+    except KeyError:
+        return None
+
+def _lookup_cde_name(cde_string):
+    from rdrf.models import CommonDataElement
+    try:
+        cde_code = cde_string.split("____")[2]
+        cde_object = CommonDataElement.objects.get(code=cde_code)
+        return cde_object.name
+    except CommonDataElement.DoesNotExist:
+        return None
+    except IndexError:
+        return None
