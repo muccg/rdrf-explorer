@@ -92,12 +92,13 @@ class DownloadQueryView(LoginRequiredMixin, View):
 
     def get(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
-        database_utils = DatabaseUtils()
+        query_form = QueryForm(instance=query_model)
+        database_utils = DatabaseUtils(query_model)
         
-        result = database_utils.run_query(query_model)
+        result = database_utils.run_full_query().result
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="%s"' % _get_filename(query_id, request)
+        response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % query_model.title.lower()
         writer = csv.writer(response)
 
         header = _get_header(result)
@@ -152,7 +153,3 @@ def _get_content(result, header):
     for h in header:
         row.append(result[h])
     return row
-
-
-def _get_filename(query_id, request):
-    return "query_%s_%s.csv" % (query_id, request.user.username)

@@ -10,7 +10,8 @@ from django.db import connection
 from models import Query
 from viewer import app_settings
 from rdrf.utils import mongo_db_name_reg_id
-
+from models import Query
+from forms import QueryForm
 
 class DatabaseUtils(object):
 
@@ -19,10 +20,26 @@ class DatabaseUtils(object):
     ]
 
     def __init__(self, form_object=None):
-        if form_object:
+        if form_object and isinstance(form_object, QueryForm):
             self.form_object = form_object
             self.query = form_object['sql_query'].value()
-            self._sql_parameters()
+            self.regsitry_id = self.form_object['registry'].value()
+            self.collection = self.form_object['collection'].value()
+            self.criteria = self._string_to_json(self.form_object['criteria'].value())
+            self.projection = self._string_to_json(self.form_object['projection'].value())
+            self.aggregation = self._string_to_json(self.form_object['aggregation'].value())
+            self.mongo_search_type = self.form_object['mongo_search_type'].value()
+            self._sql_parameters(form_object)
+        elif form_object and isinstance(form_object, Query):
+            self.form_object = form_object
+            self.query = form_object.sql_query
+            self.regsitry_id = self.form_object.registry.id
+            self.collection = self.form_object.collection
+            self.criteria = self._string_to_json(self.form_object.criteria)
+            self.projection = self._string_to_json(self.form_object.projection)
+            self.aggregation = self._string_to_json(self.form_object.aggregation)
+            self.mongo_search_type = self.form_object.mongo_search_type
+            self._sql_parameters(form_object)
     
     def connection_status(self):
         try:
@@ -48,14 +65,14 @@ class DatabaseUtils(object):
         projection = {}
         criteria = {}
         
-        database = client[mongo_db_name_reg_id(self.form_object['registry'].value())]
-        collection = database[self.form_object['collection'].value()]
+        database = client[mongo_db_name_reg_id(self.regsitry_id)]
+        collection = database[self.collection]
         
-        mongo_search_type = self.form_object['mongo_search_type'].value()
+        mongo_search_type = self.mongo_search_type
         
-        criteria = self._string_to_json(self.form_object['criteria'].value())
-        projection = self._string_to_json(self.form_object['projection'].value())
-        aggregation = self._string_to_json(self.form_object['aggregation'].value())
+        criteria = self.criteria
+        projection = self.projection
+        aggregation = self.aggregation
 
         django_ids = []
         for r in self.result:
@@ -110,11 +127,14 @@ class DatabaseUtils(object):
             result = None
         return result
     
-    def _sql_parameters(self):
+    def _sql_parameters(self, form_object):
         for param in self.QUERY_PARAMETERS:
             param_name = re.findall("%(.*?)%", param)[0]
-            param_value = self.form_object[param_name].value()
-            self.query = self.query.replace(param, param_value)
+            if isinstance(form_object, QueryForm):
+                param_value = form_object[param_name].value()
+            elif isinstance(form_object, Query):
+                param_value = getattr(form_object, param_name)
+            self.query = self.query.replace(param, str(param_value.id))
         
     def _dictfetchall(self, cursor):
         "Returns all rows from a cursor as a dict"
