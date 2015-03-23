@@ -98,6 +98,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(query_model)
         
         result = database_utils.run_full_query().result
+        result = _human_friendly(result)
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % query_model.title.lower()
@@ -117,7 +118,7 @@ class SqlQueryView(View):
 
     def post(self, request):
         form = QueryForm(request.POST)
-        database_utils = DatabaseUtils(form)
+        database_utils = DatabaseUtils(form, True)
         results = database_utils.run_sql().result
         response = HttpResponse(dumps(results, default=json_serial))
         return response

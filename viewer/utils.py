@@ -19,26 +19,28 @@ class DatabaseUtils(object):
         "%registry%",
     ]
 
-    def __init__(self, form_object=None):
+    def __init__(self, form_object=None, verify=False):
         if form_object and isinstance(form_object, QueryForm):
             self.form_object = form_object
             self.query = form_object['sql_query'].value()
             self.regsitry_id = self.form_object['registry'].value()
-            self.collection = self.form_object['collection'].value()
-            self.criteria = self._string_to_json(self.form_object['criteria'].value())
-            self.projection = self._string_to_json(self.form_object['projection'].value())
-            self.aggregation = self._string_to_json(self.form_object['aggregation'].value())
-            self.mongo_search_type = self.form_object['mongo_search_type'].value()
+            if not verify:
+                self.collection = self.form_object['collection'].value()
+                self.criteria = self._string_to_json(self.form_object['criteria'].value())
+                self.projection = self._string_to_json(self.form_object['projection'].value())
+                self.aggregation = self._string_to_json(self.form_object['aggregation'].value())
+                self.mongo_search_type = self.form_object['mongo_search_type'].value()
             self._sql_parameters(form_object)
         elif form_object and isinstance(form_object, Query):
             self.form_object = form_object
             self.query = form_object.sql_query
             self.regsitry_id = self.form_object.registry.id
-            self.collection = self.form_object.collection
-            self.criteria = self._string_to_json(self.form_object.criteria)
-            self.projection = self._string_to_json(self.form_object.projection)
-            self.aggregation = self._string_to_json(self.form_object.aggregation)
-            self.mongo_search_type = self.form_object.mongo_search_type
+            if not verify:
+                self.collection = self.form_object.collection
+                self.criteria = self._string_to_json(self.form_object.criteria)
+                self.projection = self._string_to_json(self.form_object.projection)
+                self.aggregation = self._string_to_json(self.form_object.aggregation)
+                self.mongo_search_type = self.form_object.mongo_search_type
             self._sql_parameters(form_object)
     
     def connection_status(self):
