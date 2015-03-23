@@ -79,8 +79,8 @@ class QueryView(LoginRequiredMixin, View):
         database_utils = DatabaseUtils(form)
 
         if request.is_ajax():
-            result = database_utils.run_sql().run_mongo().result
-            return HttpResponse(dumps(result))
+            result = database_utils.run_full_query().result
+            return HttpResponse(dumps(result, default=json_serial))
         else:
             if form.is_valid():
                 m = query_form.save(commit=False)

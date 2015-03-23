@@ -89,6 +89,18 @@ class DatabaseUtils(object):
         self.result = records
         return self
 
+    def run_full_query(self):
+        sql_result = self.run_sql().result
+        mongo_result = self.run_mongo().result
+        
+        self.result = []
+        for sr in sql_result:
+            for mr in mongo_result:
+                if sr['id'] == int(mr['django_id']):
+                    mr.update(sr)
+                    self.result.append(mr)
+
+        return self
     
     def _string_to_json(self, string):
         result = None
