@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.views.generic.base import View
+from django.core.urlresolvers import reverse
 from django.template import RequestContext
 
 from django.contrib.auth.decorators import login_required
@@ -10,7 +11,9 @@ from viewer import app_settings
 from forms import QueryForm
 from models import Query
 from utils import DatabaseUtils
+from rdrf.models import Registry
 
+import re
 import csv
 import json
 import urllib2
@@ -92,16 +95,55 @@ class QueryView(LoginRequiredMixin, View):
 
 class DownloadQueryView(LoginRequiredMixin, View):
 
-    def get(self, request, query_id):
+    def post(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
         query_form = QueryForm(instance=query_model)
+        
+        query_params = re.findall("%(.*?)%", query_model.sql_query)
+        
+        sql_query = query_model.sql_query
+        for param in query_params:
+            sql_query = sql_query.replace("%%%s%%" % param, request.POST[param])        
+        query_model.sql_query = sql_query
+        
+        if "registry" in query_params:
+            query_model.registry = Registry.objects.get(id=request.POST["registry"])
+        
         database_utils = DatabaseUtils(query_model)
         
         result = database_utils.run_full_query().result
+        
+        if result:
+            return self._extract(result, query_model.title)
+        
+        return redirect(reverse("viewer_query_download", args=(query_id,)))
+
+    def get(self, request, query_id):
+        query_model = Query.objects.get(id=query_id)
+        query_form = QueryForm(instance=query_model)
+
+        query_params = re.findall("%(.*?)%", query_model.sql_query)
+        
+        if query_params:
+            params = _get_default_params(request, query_form)
+            params['query_params'] = query_params
+            if "registry" in query_params:
+                params["registry"] = Registry.objects.all()
+            return render_to_response('viewer/query_download.html', params)
+        
+        database_utils = DatabaseUtils(query_model)
+        
+        result = database_utils.run_full_query().result
+        if result:
+            return self._extract(result, query_model.title)
+        
+        return redirect(query_model)
+
+    def _extract(self, result, title):
         result = _human_friendly(result)
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % query_model.title.lower()
+        response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' %title.lower()
         writer = csv.writer(response)
 
         header = _get_header(result)
@@ -112,7 +154,6 @@ class DownloadQueryView(LoginRequiredMixin, View):
             writer.writerow(row)
 
         return response
-
 
 class SqlQueryView(View):
 
@@ -146,9 +187,10 @@ def _get_default_params(request, form):
 
 def _get_header(result):
     header = []
-    for key in result[0].keys():
-        header.append(key)
-    return header
+    if result:
+        for key in result[0].keys():
+            header.append(key)
+        return header
 
 
 def _get_content(result, header):

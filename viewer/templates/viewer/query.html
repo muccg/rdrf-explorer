@@ -60,7 +60,7 @@
                 </div>
                 <div class="col-md-12">
                     <div>
-                        <textarea placeholder="Patient SQL query" class="form-control" rows="6" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
+                        <textarea placeholder="Patient SQL query" class="form-control" rows="15" id="sql_query" name="sql_query">{{ form.sql_query.value }}</textarea>
                         <div class="pull-left" id="query-result-count" style="color: green;">
                         </div>
                     </div>    
@@ -78,16 +78,16 @@
     
             <div class="row" id="mongo-parameters-find">
                 <div class="col-md-6">
-                    <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="6">{{form.criteria.value}}</textarea>
+                    <textarea class="form-control" cols="40" id="criteria" name="criteria" rows="10">{{form.criteria.value}}</textarea>
                 </div>
                 <div class="col-md-6">
-                    <textarea class="form-control" cols="40" id="projection" name="projection" rows="6">{{form.projection.value}}</textarea>
+                    <textarea class="form-control" cols="40" id="projection" name="projection" rows="10">{{form.projection.value}}</textarea>
                 </div>
             </div>
             
             <div class="row" id="mongo-parameters-aggregation">
                 <div class="col-md-12">
-                    <textarea class="form-control" cols="40" id="aggregation" name="aggregation" rows="6">{{form.aggregation.value}}</textarea>
+                    <textarea class="form-control" cols="40" id="aggregation" name="aggregation" rows="10">{{form.aggregation.value}}</textarea>
                 </div>
             </div>
 

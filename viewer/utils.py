@@ -15,10 +15,6 @@ from forms import QueryForm
 
 class DatabaseUtils(object):
 
-    QUERY_PARAMETERS = [
-        "%registry%",
-    ]
-
     def __init__(self, form_object=None, verify=False):
         if form_object and isinstance(form_object, QueryForm):
             self.form_object = form_object
@@ -30,7 +26,6 @@ class DatabaseUtils(object):
                 self.projection = self._string_to_json(self.form_object['projection'].value())
                 self.aggregation = self._string_to_json(self.form_object['aggregation'].value())
                 self.mongo_search_type = self.form_object['mongo_search_type'].value()
-            self._sql_parameters(form_object)
         elif form_object and isinstance(form_object, Query):
             self.form_object = form_object
             self.query = form_object.sql_query
@@ -41,7 +36,6 @@ class DatabaseUtils(object):
                 self.projection = self._string_to_json(self.form_object.projection)
                 self.aggregation = self._string_to_json(self.form_object.aggregation)
                 self.mongo_search_type = self.form_object.mongo_search_type
-            self._sql_parameters(form_object)
     
     def connection_status(self):
         try:
@@ -77,9 +71,9 @@ class DatabaseUtils(object):
         aggregation = self.aggregation
 
         django_ids = []
-        for r in self.result:
-            django_ids.append(r["id"])
-
+        if self.result:
+            for r in self.result:
+                django_ids.append(r["id"])
         
         records = []
         if mongo_search_type == 'F':
@@ -129,16 +123,6 @@ class DatabaseUtils(object):
             result = None
         return result
     
-    def _sql_parameters(self, form_object):
-        for param in self.QUERY_PARAMETERS:
-            param_name = re.findall("%(.*?)%", param)[0]
-            if isinstance(form_object, QueryForm):
-                param_value = form_object[param_name].value()
-                self.query = self.query.replace(param, param_value)
-            elif isinstance(form_object, Query):
-                param_value = getattr(form_object, param_name)
-                self.query = self.query.replace(param, str(param_value.id))
-        
     def _dictfetchall(self, cursor):
         "Returns all rows from a cursor as a dict"
         desc = cursor.description
