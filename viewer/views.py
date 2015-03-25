@@ -110,13 +110,10 @@ class DownloadQueryView(LoginRequiredMixin, View):
             query_model.registry = Registry.objects.get(id=request.POST["registry"])
         
         database_utils = DatabaseUtils(query_model)
-        
         result = database_utils.run_full_query().result
         
-        if result:
-            return self._extract(result, query_model.title)
+        return self._extract(result, query_model.title, query_id)
         
-        return redirect(reverse("viewer_query_download", args=(query_id,)))
 
     def get(self, request, query_id):
         query_model = Query.objects.get(id=query_id)
@@ -131,15 +128,15 @@ class DownloadQueryView(LoginRequiredMixin, View):
                 params["registry"] = Registry.objects.all()
             return render_to_response('viewer/query_download.html', params)
         
-        database_utils = DatabaseUtils(query_model)
-        
+        database_utils = DatabaseUtils(query_model)        
         result = database_utils.run_full_query().result
-        if result:
-            return self._extract(result, query_model.title)
-        
-        return redirect(reverse("viewer_query_download", args=(query_id,)))
 
-    def _extract(self, result, title):
+        return self._extract(result, query_model.title, query_id)
+
+    def _extract(self, result, title, query_id):
+        if not result:
+            return redirect(reverse("viewer_query_download", args=(query_id,)))
+
         result = _human_friendly(result)
 
         response = HttpResponse(content_type='text/csv')

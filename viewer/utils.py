@@ -135,3 +135,11 @@ class DatabaseUtils(object):
         return MongoClient(app_settings.VIEWER_MONGO_HOST,
                            app_settings.VIEWER_MONGO_PORT)
 
+
+class ParseQuery(object):
+
+    def get_parameters(query):
+        pass
+    
+    def set_parameters(query):
+        pass
