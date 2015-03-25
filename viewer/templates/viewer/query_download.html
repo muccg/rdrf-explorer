@@ -1,6 +1,18 @@
 {% extends "viewer/base.html" %}
+{% load is_dict %}
 
 {% block content %}
+    <script>
+        $(document).ready(function() {
+            $('input[id*=date_]').each(function() {
+                $(this).prop('readonly', true);
+                $(this).datepicker({
+                    "dateFormat": "yy-mm-dd"
+                });
+            })
+        });
+    </script>
+
     <blockquote>
         <p>Required parameters for <i>{{form.title.value}}</i> report</p>
     </blockquote>

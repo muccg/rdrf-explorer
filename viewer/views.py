@@ -137,7 +137,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         if result:
             return self._extract(result, query_model.title)
         
-        return redirect(query_model)
+        return redirect(reverse("viewer_query_download", args=(query_id,)))
 
     def _extract(self, result, title):
         result = _human_friendly(result)
