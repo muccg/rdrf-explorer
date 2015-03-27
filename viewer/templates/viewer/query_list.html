@@ -4,17 +4,29 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Query</th>
-                <!--<th>Download CSV</th>-->
-                <th>Delete</th>
+                <th class="col-md-3">Query</th>
+                <th class="col-md-3">Download</th>
+                <th class="col-md-3">Delete</th>
             </tr>
         </thead>
         <tbody>
             {% for object in object_list %}
             <tr>
-                <td><a href="query/{{ object.id }}">{{ object }}</a></td>
-                <!--<td><a href="{{ object.id }}/download"><i class="glyphicon glyphicon-download" style="font-size: 20px;"></i></a></td>-->
-                <td><a href="query/delete/{{ object.id }}"><i class="glyphicon glyphicon-trash" style="font-size: 18px;"></i></a></td>
+                {% if request.user.is_superuser %}
+                    <td><a href="{% url 'viewer_query' object.id %}">{{ object }}</a></td>
+                {% else %}
+                    <td>{{object}}</td>
+                {% endif %}
+                <td>
+                    <a href="{% url 'viewer_query_download' object.id %}"><i class="glyphicon glyphicon-download" style="font-size: 20px;"></i></a>
+                </td>
+                <td>
+                    {% if request.user.is_superuser %}
+                        <a href="{% url 'viewer_query_delete' object.id %}"><i class="glyphicon glyphicon-trash" style="font-size: 18px;"></i></a>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>

@@ -3,29 +3,32 @@
     
 <html>
     <head>
-        <title>Django MongoDB Viewer</title>
+        <title>RDRF Reporting Tool</title>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
         <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.min.js"></script>
-        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
         
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
-        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.21.0/codemirror.min.css">
 
-        <link rel="stylesheet" href="{% static 'css/viewer.css' %}">   
+        <link rel="stylesheet" href="{% static 'css/viewer.css' %}">
+        
+        <script src="{% static 'js/jquery.cookies.js' %}"></script>
     </head>
     
     <body>
         
         <nav class="navbar navbar-inverse" role="navigation">
             <div class="container">
-                <p class="navbar-brand" href="viewer">MongoDB Viewer <sup>{{version}}</sup></p>
+                <p class="navbar-brand" href="viewer">RDRF Reporting Tool <sup>{{version}}</sup></p>
                 <ul class="nav navbar-nav">
-                    <li><a href="/viewer/">List</a></li>
-                    <li><a href="/viewer/new">New</a></li>
+                    <li><a href="{% url 'viewer_main' %}">List</a></li>
+                    <li><a href="{% url 'viewer_new' %}">New</a></li>
                 </ul>
 
                 {% if status %}
@@ -56,41 +59,28 @@
             </div>
         </div>
         
-    <script>/*
-        var editor = CodeMirror.fromTextArea(document.getElementById('criteria'), {
-            mode: "application/json",
-            lineNumbers: true
-        });
-
-        var editor = CodeMirror.fromTextArea(document.getElementById('projection'), {
-            mode: "application/javascript",
-            lineNumbers: true
-        });*/
-    </script>
-        
-    <script>
-        $(document).ready(function(){
-            $('#collection').hide();
-            $('#results').hide();
-
-            $("#database").change(function(){
-                $('#results-head').empty();
-                $('#results-body').empty();
-                $('#results').fadeOut();
-                $.getJSON("/viewer/db/" + this.value, function(data) {
-                    $('#collection').fadeOut(function() {
-                        $('#collection').empty();
-                        $.each(data, function(index, value) {
-                            $('#collection').append($("<option></option>").attr("value", value).text(value));
-                        });
-                        $("#collection").val('{{form.collection.value}}');
-                        $('#collection').fadeIn("slow");
-                    });
+        <script>
+            $(document).ready(function() {
+                if('{{form.mongo_search_type.value}}' == 'F') {
+                    $("#mongo-parameters-aggregation").hide();
+                } else {
+                    $("#mongo-parameters-find").hide();
+                }
+                
+                $("#query-error").hide();
+    
+                $("#registry-option").change(function(){
+                    $("#database").val(this.value);
                 });
-            });
-            
-            $('#submit-query').click(function() {
-                $('#results').fadeOut(function() {
+                
+                $("#id_mongo_search_type").change(function() {
+                    $("#mongo-parameters-aggregation").toggle();
+                    $("#mongo-parameters-find").toggle();
+                });
+
+                $('#submit-query').click(function() {
+                    $('#results-head').empty();
+                    $('#results-body').empty();
                     $.post('', $("#query-form").serialize())
                         .error(function(xhr, textStatus, error) { 
                             $("#response_error").text(textStatus);
@@ -106,7 +96,7 @@
                             
                             $('#results-head').empty();
                             $('#results-body').empty();
-                            
+
                             $.each(response[0], function(key, value) {
                                 $('#results-head').append($("<th></th>").text(key));
                             });
@@ -114,30 +104,63 @@
                             $.each(response, function(key, value) {
                                 var row = $('<tr></tr>');
                                 $.each(value, function(key, value) {
+                                    if (value instanceof Array) {
+                                        
+                                    }
                                     row.append($('<td></td>').text(value));
                                 });
                                 $('#results-body').append(row);
-                            });
-                            $('#hide-form-btn').click();
-                            $('#results').fadeIn();
+                        });
+                    });
+                });
+
+                $('#hide-form-btn').click(function() {
+                    $('#query-form-table').toggle("blind", function() {
+                        if($('#query-form-table').is( ":visible" )) {
+                            $('#hide-form-btn').html('Hide form');
+                        } else {
+                            $('#hide-form-btn').html('Show form');
+                        }
+                    });
+                });
+                
+                $('#hide-description-btn').click(function() {
+                    $('#query-description').toggle("blind", function() {
+                        if($('#query-description').is( ":visible" )) {
+                            $('#hide-description-btn').html('Hide description');
+                        } else {
+                            $('#hide-description-btn').html('Show description');
+                        }
+                    });
+                });
+                
+                $('#sql-submit-query').click(function(){
+                    $("#query-error").hide("blind");
+                    $.ajax({
+                        url: "{% url 'viewer_sql_query' %}",
+                        type: "POST",
+                        data: {
+                            'sql_query': $('#sql_query').val(),
+                            'registry': $('#id_registry').val()
+                        },
+                        headers: {
+                            'X-CSRFToken': $.cookie('{{ csrf_token_name }}')
+                        },
+                        success: function(data) {
+                            response = jQuery.parseJSON(data);
+                            if ("error_msg" in response) {
+                                $('#query-result-count').empty();
+                                $("#query-error").show('blind');
+                                $("#query-error").html(response['error_msg']);
+                            } else {
+                                $('#query-result-count').empty();
+                                $('#query-result-count').html("Valid query | <strong>" + response.length + "</strong> record(s) found");
+                            }
+                        }
                     });
                 });
             });
-            
-            $('#hide-form-btn').click(function() {
-                $('#query-form').toggle("blind", function() {
-                    if($('#query-form').is( ":visible" )) {
-                        $('#hide-form-btn').html('Hide form');
-                    } else {
-                        $('#hide-form-btn').html('Show form');
-                    }
-                });
-            });
-            
-            $("#database").val('{{form.database.value}}');
-            $("#database").change();
-        });
-    </script>
+        </script>
 
     </body>
 </html>
