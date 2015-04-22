@@ -1,5 +1,6 @@
 import re
 import json
+import ast
 
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
@@ -24,7 +25,7 @@ class DatabaseUtils(object):
                 self.collection = self.form_object['collection'].value()
                 self.criteria = self._string_to_json(self.form_object['criteria'].value())
                 self.projection = self._string_to_json(self.form_object['projection'].value())
-                self.aggregation = self._string_to_json(self.form_object['aggregation'].value())
+                self.aggregation = self.form_object['aggregation'].value()
                 self.mongo_search_type = self.form_object['mongo_search_type'].value()
         elif form_object and isinstance(form_object, Query):
             self.form_object = form_object
@@ -34,7 +35,7 @@ class DatabaseUtils(object):
                 self.collection = self.form_object.collection
                 self.criteria = self._string_to_json(self.form_object.criteria)
                 self.projection = self._string_to_json(self.form_object.projection)
-                self.aggregation = self._string_to_json(self.form_object.aggregation)
+                self.aggregation = self.form_object.aggregation
                 self.mongo_search_type = self.form_object.mongo_search_type
     
     def connection_status(self):
@@ -68,13 +69,19 @@ class DatabaseUtils(object):
         
         criteria = self.criteria
         projection = self.projection
-        aggregation = self.aggregation
+        
+        aggregation = []
+        
+        pipline = self.aggregation.split("|")
+        for pipe in pipline:
+            for key, value in ast.literal_eval(pipe).iteritems():
+                aggregation.append({ key:value })
 
         django_ids = []
         if self.result:
             for r in self.result:
                 django_ids.append(r["id"])
-        
+
         records = []
         if mongo_search_type == 'F':
             criteria["django_id"] = {"$in":django_ids}
@@ -83,20 +90,18 @@ class DatabaseUtils(object):
             if "$match" in aggregation:
                 aggregation["$match"].update({"django_id":{"$in":django_ids }})
             else:
-                aggregation["$match"] = {"django_id":{"$in":django_ids }}
-            results = collection.aggregate([aggregation])
+                aggregation.append({"$match": {"django_id":{"$in":django_ids }} })
+            results = collection.aggregate(aggregation)
             results = results['result']
     
         for cur in results:
             row = {}
             for k in cur:
-                if isinstance(cur[k], (list, tuple)):
-                    tmp = []
-                    for item in cur[k]:
-                        tmp.append(item)
-                    row[k] = tmp
+                if isinstance(cur[k], (dict)):
+                    for key, value in cur[k].iteritems():
+                        row[key] = value
                 else:
-                    row[k] = str(cur[k])
+                    row[k] = cur[k]
             records.append(row)
         
         self.result = records
@@ -116,12 +121,10 @@ class DatabaseUtils(object):
         return self
     
     def _string_to_json(self, string):
-        result = None
         try:
-            result = json.loads(string)
+            return json.loads(string)
         except ValueError:
-            result = None
-        return result
+            return None
     
     def _dictfetchall(self, cursor):
         "Returns all rows from a cursor as a dict"
